@@ -1,0 +1,201 @@
+---
+title: "Hunting Ground State Assessment"
+author: "Annie Claude Bélisle, Hugo Asselin"
+date: "January 2020"
+output: html_document
+classoption: landscape
+---
+
+```{r setup, include=FALSE }
+knitr::opts_chunk$set(echo=FALSE,message=FALSE)
+```
+
+
+```{r, include = FALSE} 
+
+# Load the librairies you will need. If they are not installed yet, you will have to do that first: Tools-Install packages
+
+library(ggplot2)
+library(gridExtra)
+library(rgdal)
+library(cowplot)
+library(sf)
+library(dplyr)
+library(cluster)
+library(vegan)
+library(tidyverse)
+
+# Upload the data sheet.I use a .csv format with ; as separator and , for decimals.  
+f <- file.choose()
+
+data <-read.csv(f,sep=";",dec=".",header=TRUE,row.names="hg")
+
+```
+
+
+```{r, include = FALSE} 
+
+# We need to decide how many clusters we will be using. Write down the minimum an maximum number of groups. 
+min_gr<-2
+max_gr<-8
+# We will run series of k-means on scaled data (mean=0 and square deviation =1)and use SSI and Calinski indicators to find the optimal number of groups. . 
+
+cascade_cal<-cascadeKM(scale(data),inf.gr=min_gr,sup.gr=max_gr,iter=100,criterion="calinski")
+cascade_ssi<-cascadeKM(scale(data),inf.gr=min_gr,sup.gr=max_gr,iter=100,criterion="ssi")
+
+plot(cascade_cal)
+plot(cascade_ssi)
+
+```
+
+```{r ,include = FALSE} 
+
+# Run k-means again and specify the number of groups. I chose to work with four. 
+n_gr<-4
+km4<-kmeans(scale(data),centers=n_gr,iter.max=100,nstart=5)
+Cluster<-km4$cluster
+
+#We wan to get fixed color codes and cluster ID so  we will change the cluster ID according to preset codes.
+#I know we want the hunting grouns O48A in Cluster ID 1, O59 in Cluster 2, A9 in Cluster 3 and A33 in Cluster 4
+
+new_Clu1=which(Cluster==Cluster[which(row.names(data)=="O48A")])
+new_Clu2=which(Cluster==Cluster[which(row.names(data)=="O59")])
+new_Clu3=which(Cluster==Cluster[which(row.names(data)=="A9")])
+new_Clu4=which(Cluster==Cluster[which(row.names(data)=="A33")])
+
+Cluster[new_Clu1]=1
+Cluster[new_Clu2]=2
+Cluster[new_Clu3]=3
+Cluster[new_Clu4]=4
+
+
+
+
+#We will create a new dataframe including the scaled indicators and the cluster
+data_clu=cbind(data.frame(scale(data),Cluster))%>%
+  rownames_to_column()%>%
+  rename(hg=rowname)
+
+
+
+
+data_clu=cbind(data.frame(scale(data),Cluster))%>%
+  rownames_to_column()%>%
+  rename(hg=rowname)
+
+
+```
+
+```{r, include = FALSE} 
+# We need to up load the shapefile containing the landscape boundaries. If the shapefile is not located in the same forlder as the .rmd file, it will be necessary to indicate the full direction. The shapefile needs to be in the desired projection. 
+
+map_hg=st_read("hunting_grounds.shp")%>%
+  left_join(data_clu, by="hg")
+
+```
+
+```{r, warning = FALSE, fig.width=20,fig.height=20,dpi=100} 
+# The fun starts here
+data_plot_clu=tbl_df(data_clu)%>%
+  arrange(hg)
+
+  
+   for(i in 1:nrow(data_plot_clu))
+  {
+#Use i=1 to test the loop
+
+     ## Hunting_ground ID
+   hg_i=as.character(data_plot_clu$hg[i])
+   ## we create a table containing  vector hg_x where the current huntng ground has a value of 1 anf others have a value of 0 
+    data_plot_i=data_plot_clu%>%
+      mutate(hg_x=ifelse(as.character(hg)==hg_i,1,0))
+    
+    map_hg_i=map_hg%>%
+      mutate(hg_x=ifelse(as.character(hg)==hg_i,1,0))
+    
+    ## Map
+  
+    map_layout_i=ggplot(data=map_hg_i)+
+      geom_sf(aes(fill=as.factor(Cluster),alpha=as.factor(hg_x)))+
+      scale_fill_brewer(type = 'qual', palette = "Set2")+
+      scale_colour_brewer(type = 'qual', palette = "Set2")+
+      scale_alpha_discrete(range=c(0.3, 1))+
+      coord_sf(datum=NA,expand = FALSE)+
+      theme_void()+
+      scale_y_continuous(expand = c(0, 0))+
+      theme(legend.position = "none")
+    
+  ### A loop in the loop to generate dot plots for each indicator
+    ### The graph parameters will need to be adjusted (e.g. bin width, x and y limits)
+  list_dot_plots=list()
+    for(j in 2:ncol(data_plot_clu))
+    {
+    
+  df_j=cbind(data_plot_i[,j],data_plot_i[,"Cluster"],data_plot_i[,"hg_x"])
+  df_j$Cluster=as.factor(df_j$Cluster)
+  df_j$hg_x=as.factor(df_j$hg_x)
+  
+  names(df_j)[1]="x"
+  
+    title_j=as.character(names(data_plot_i)[j])
+      
+    plot_j=ggplot(df_j,aes(x=x,fill=as.factor(Cluster),colour=as.factor(Cluster),alpha=hg_x))+
+      geom_dotplot(binpositions="all",binwidth=0.5,stackgroups = TRUE,method="histodot")+
+        theme_classic()+
+      labs(y="",x=title_j)+
+      scale_fill_brewer(type = 'qual', palette = "Set2")+
+        scale_colour_brewer(type = 'qual', palette = "Set2")+
+      scale_alpha_discrete(range=c(0.2, 1))+
+      ggtitle("") +
+      theme(axis.text.x= element_blank(),
+            axis.text.y= element_blank(),
+            axis.title.x=element_text(title_j,size=16),
+            axis.line.y = element_blank(),
+            axis.ticks.y=element_blank(),
+            legend.position="none")+
+        #title(main=title_j)+
+    scale_x_continuous(expand = c(0.04, 0),limits = c(-4.5,4.5)) + 
+    scale_y_continuous(expand = c(0, 0),limits=c(0,30))
+    
+    list_dot_plots[[j-1]]=plot_j
+    
+  }
+      
+    ### hunting ground ID
+    id=ggdraw() + 
+      draw_text(data_plot_i$hg[i], size = 44,fontface = "plain") 
+    
+   ### we organize the layout in 4 lines
+    
+    plots=plot_grid(list_dot_plots[[1]],
+                    list_dot_plots[[2]],
+                    list_dot_plots[[3]],
+                    list_dot_plots[[4]],
+                    list_dot_plots[[5]],
+                    list_dot_plots[[6]],
+                    list_dot_plots[[7]],
+                    list_dot_plots[[8]],
+                    list_dot_plots[[9]],
+                    list_dot_plots[[10]],
+                    list_dot_plots[[11]],
+                    list_dot_plots[[12]],
+                    list_dot_plots[[13]],
+                    list_dot_plots[[14]],
+                    list_dot_plots[[15]],
+                    ncol=5)
+    
+   top=plot_grid(id,map_layout_i,NULL,ncol=3,rel_heights = c(2,7,1))
+    
+        all=plot_grid(top,plots,nrow=2,rel_heights = c(1,6))
+    wow=plot_grid(all,NULL,nrow=2,rel_heights=c(7,1))
+    print(wow)
+    
+    
+   #To export in pdf
+   # filename_i=paste("C://R//hg_assessment_",data_plot_i$hg[i],".pdf",sep="")
+    #ggsave(filename=filename_i,plot=wow,width=8, height = 7,units="in")
+    
+   } 
+
+```
+
