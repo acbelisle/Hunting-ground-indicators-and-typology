@@ -1,5 +1,3 @@
 # Hunting-ground-indicators-and-typology
-This repository contains a R markdown file, a shape file (.shp) and a data sheet (.csv). The R includes a clustering algorithm and a data visualisation code. 
-It produces a html report. 
-The shapefile (polygons) contains the hunting ground boundaries (Abitibiwinni First nation and Ouje-Bougoumou Cree Nation.
-The data file (.csv) contains indicators (columns) for each hunting ground (lines). 
+This repository contains two R markdown files (.rmd), one for the hunting ground assessment and one for the metadata report. Rmarkdown files can be run in RStudio free platform and "knitted" to create .html or .pdf files. The assessment .rmd includes clustering and data visualisation codes in R programming language. The assessment code loads a polygon shapefile (hunting ground boundaries) and a .csv file with indicators (columns) for each hunting ground (lines). The metadata .rmd uses the indicator data file and an additional .csv file containing the information on indicators. Please refer to the data provided to structure your own metadata.
+For any assistance, please email me at annieclaude.belisle @ uqat.ca.
