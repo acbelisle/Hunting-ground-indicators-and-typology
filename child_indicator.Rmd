@@ -1,0 +1,26 @@
+
+
+
+
+####**`r (metadata$Factor[j])` --- `r metadata$Indicator_name[j]` (`r metadata$Indicator_code[j]`)**
+#####`r (metadata$Definition[j])`
+
+
+```{r jnclude = TRUE} 
+hist[[j]]
+
+```
+
+##### **Data**
+
+#####`r metadata$Source[j]`
+
+#####`r metadata$Reference[j]`
+
+#####`r metadata$URL[j]`
+
+##### **SQL Query**
+
+#####`r metadata$Query[j]`
+
+***
