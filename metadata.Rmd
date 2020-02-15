@@ -1,0 +1,172 @@
+---
+title: "Indicators of hunting ground state (metadata)"
+author: "Annie Claude Bélisle, Hugo Asselin"
+date: "February 2020"
+output: html_document
+
+---
+
+```{r setup, include=FALSE }
+knitr::opts_chunk$set(echo=FALSE,message=FALSE)
+```
+
+
+```{r, include = FALSE} 
+
+# Load the librairies you will need. If they are not installed yet, you will have to do that first: Tools-Install packages
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+# Upload the data sheet.I use a .csv format with ; as separator and , for decimals.  
+m <- "E:/these/chapitrextra/matt_supp/metadata2.csv"
+metadata <-read.csv(m,sep=";",dec=".",header=TRUE)
+
+d <- "E:/these/chapitrextra/code_outil/indic.csv"
+data<-read.csv(d,sep=";",dec=".",header=TRUE)
+
+names(metadata)[1]<-"Factor"
+```
+
+
+
+```{r include = TRUE} 
+hist<-list()
+for (i in 1:nrow(metadata))
+  {
+i_name=as.character(metadata$Indicator_code[i])
+data_i=select(data,i_name)
+names(data_i)<-"x"
+hist_i<-ggplot(data_i,aes(x=x))+
+  geom_histogram(bins = 20)+
+  theme_bw()+
+  labs(x = i_name,y="n hunting grounds")
+hist[[i]]<-hist_i
+}
+
+```
+
+***
+
+```{r include = FALSE} 
+j=1
+```
+
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=2
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+```{r include = FALSE} 
+j=3
+```
+
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=4
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=5
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=6
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+
+```{r include = FALSE} 
+j=7
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=8
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=9
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=10
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=11
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=12
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=13
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=14
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
+
+```{r include = FALSE} 
+j=15
+```
+
+```{r test-main, child = 'child_indicator.Rmd'}
+```
+
